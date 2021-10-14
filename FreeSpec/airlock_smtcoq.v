@@ -15,6 +15,59 @@ Variable MayProvide
 Variable Provide : forall ix i : interface, MayProvide ix i -> Type.
 Definition Ω := (bool * bool)%type.
 Inductive door : Set :=  left : door | right : door.
+
+(* We establish some properties on user-defined types, containing in
+   particular the fact that it has a decidable order. We plan to have
+   these properties proved automatically. *)
+
+Section CompDec_door.
+  Let eqb : door -> door -> bool :=
+    fun a b =>
+      match a, b with
+      | left, left | right, right => true
+      | _, _ => false
+      end.
+
+  Let lt : door -> door -> Prop :=
+    fun a b =>
+      match a, b with
+      | left, right => True
+      | _, _ => False
+      end.
+
+  Global Instance door_ord : OrdType door.
+  Proof.
+    exists lt.
+    - now intros [ | ] [ | ] [ | ].
+    - now intros [ | ] [ | ].
+  Defined.
+
+  Global Instance door_eqbtype : EqbType door.
+  Proof.
+    exists eqb.
+    now intros [ | ] [ | ].
+  Defined.
+
+  Global Instance door_comp : @Comparable door door_ord.
+  Proof.
+    split.
+    intros [ | ] [ | ]; try now apply OrderedType.EQ.
+    - now apply OrderedType.LT.
+    - now apply OrderedType.GT.
+  Defined.
+
+  Global Instance door_inh : Inhabited door := {| default_value := left |}.
+
+  Global Instance door_compdec : CompDec door := {|
+    Eqb := door_eqbtype;
+    Ordered := door_ord;
+    Comp := door_comp;
+    Inh := door_inh
+  |}.
+
+  Definition door_typ_compdec := Typ_compdec door door_compdec.
+End CompDec_door.
+
 Inductive DOORS : interface :=
 | IsOpen : door -> DOORS bool
 | Toggle : door -> DOORS unit.
@@ -39,19 +92,20 @@ Inductive doors_o_callee : Ω -> forall a : Type, DOORS a -> a -> Prop :=
   | doors_o_callee_toggle : forall (d : door) (ω : Ω) (x : unit), doors_o_callee ω unit (Toggle d) x.
 
 
-(* Inductive type => boolean function *)
+(* Inductive type => Boolean function
+   + the arguments of type Type must be first *)
 
-Definition doors_o_callee2 :  Ω -> forall (a : Type) (D :  DOORS a), (match D with 
+Definition doors_o_callee2 :  forall (a : Type), Ω -> forall (D :  DOORS a), (match D with 
 | IsOpen _ =>  bool 
 | Toggle _ => unit
 end) -> bool :=
-fun ω a D => match D with
+fun a ω D => match D with
 | IsOpen d => fun x => Bool.eqb (sel d ω) x
 | Toggle d => fun x => true
 end.
 
-Definition doors_o_caller2 : Ω -> forall (a : Type) (D : DOORS a), bool := 
-fun ω a D => match D with
+Definition doors_o_caller2 : forall (a : Type), Ω -> forall (D : DOORS a), bool := 
+fun a ω D => match D with
 | IsOpen _ => true
 | Toggle d => implb (negb (sel d ω)) (negb (sel (co d) ω))
 end.
@@ -64,8 +118,8 @@ Variable d : door.
 
 
 
-Goal doors_o_caller2 ω bool (IsOpen d).
-Proof. scope. Fail verit. (*TODO Chantal *)
+Goal doors_o_caller2 bool ω (IsOpen d).
+Proof. scope. verit. Qed. (*TODO Chantal *)
  apply H6. Qed. 
 
 Variable o_caller : doors_o_caller2 ω bool (IsOpen d).
