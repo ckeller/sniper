@@ -16,9 +16,17 @@ Variable Provide : forall ix i : interface, MayProvide ix i -> Type.
 Definition Ω := (bool * bool)%type.
 Inductive door : Set :=  left : door | right : door.
 
-(* We establish some properties on user-defined types, containing in
-   particular the fact that it has a decidable order. We plan to have
-   these properties proved automatically. *)
+Inductive DOORS : interface :=
+| IsOpen : door -> DOORS bool
+| Toggle : door -> DOORS unit.
+
+
+(* One has to establish some properties on user-defined types,
+   containing in particular the fact that it has a decidable equality,
+   an order relation and an inhabitant.
+
+  We plan to have these properties proved automatically.
+ *)
 
 Section CompDec_door.
   Let eqb : door -> door -> bool :=
@@ -68,9 +76,89 @@ Section CompDec_door.
   Definition door_typ_compdec := Typ_compdec door door_compdec.
 End CompDec_door.
 
-Inductive DOORS : interface :=
-| IsOpen : door -> DOORS bool
-| Toggle : door -> DOORS unit.
+(* Manipulating DOORS is tricky though, due to the dependency over a
+   type. *)
+
+
+Section CompDec_DOORS.
+  Context `{HT : CompDec T}.
+
+(*
+  Let eqb : DOORS T -> DOORS T -> bool :=
+    fun a b =>
+      match a, b with
+        | IsOpen d1, IsOpen d2 => SMT_classes.eqb d1 d2
+        | Toggle d1, Toggle d2 => SMT_classes.eqb d1 d2
+        | _, _ => false
+      end.
+
+  (* Let lt : DOORS T -> DOORS T -> Prop. *)
+  (* Proof. *)
+  (*   intro x. destruct x as [d1|d1]. *)
+  (*   intro y. inversion y. *)
+
+  Let lt : DOORS T -> DOORS T -> Prop :=
+    fun a =>
+      match a in DOORS i return DOORS i -> Prop with
+        | IsOpen d1 =>
+          fun b =>
+            match b in DOORS bool return Prop with
+            | IsOpen d2 => lt d1 d2
+            | Toggle d2 => False_rect unit
+            end
+        | Toggle d1 => fun _ => True
+      end.
+
+  Let lt : DOORS T -> DOORS T -> Prop :=
+    fun a b =>
+      match a, b with
+        | IsOpen d1, IsOpen d2 => lt d1 d2
+        | IsOpen _, Toggle _ => True
+        | Toggle _, IsOpen _ => False
+        | Toggle d1, Toggle d2 => lt d1 d2
+      end.
+
+  Global Instance DOORS_ord : OrdType (DOORS T).
+  Proof.
+    exists lt.
+    - intros x y z.
+      destruct x as [d1|d1].
+      inversion y.
+
+ ; destruct y as [d2|d2]; destruct z as [d3|d3].
+    - now intros [ | ] [ | ].
+  Defined.
+
+  Global Instance DOORS T_eqbtype : EqbType DOORS T.
+  Proof.
+    exists eqb.
+    now intros [ | ] [ | ].
+  Defined.
+
+  Global Instance DOORS T_comp : @Comparable DOORS T DOORS T_ord.
+  Proof.
+    split.
+    intros [ | ] [ | ]; try now apply OrderedType.EQ.
+    - now apply OrderedType.LT.
+    - now apply OrderedType.GT.
+  Defined.
+
+  Global Instance DOORS T_inh : Inhabited DOORS T := {| default_value := left |}.
+
+  Global Instance DOORS T_compdec : CompDec DOORS T := {|
+    Eqb := DOORS T_eqbtype;
+    Ordered := DOORS T_ord;
+    Comp := DOORS T_comp;
+    Inh := DOORS T_inh
+  |}.
+*)
+
+  Global Instance DOORS_compdec : CompDec (DOORS T).
+  Admitted.
+
+  Definition DOORS_typ_compdec := Typ_compdec (DOORS T) DOORS_compdec.
+End CompDec_DOORS.
+
 
 Definition sel : door -> Ω -> bool := fun d : door => match d with
                       | left => fst
@@ -119,15 +207,14 @@ Variable d : door.
 
 
 Goal doors_o_caller2 bool ω (IsOpen d).
-Proof. scope. verit. Qed. (*TODO Chantal *)
- apply H6. Qed. 
+Proof. snipe. Qed.
 
-Variable o_caller : doors_o_caller2 ω bool (IsOpen d).
+Variable o_caller : doors_o_caller2 bool ω (IsOpen d).
 Variable x : bool.
 Variable eq_cond : x = true.
-Variable o_caller0 : doors_o_callee2 ω bool (IsOpen d) x. 
+Variable o_caller0 : doors_o_callee2 bool ω (IsOpen d) x. 
 
-Goal doors_o_caller2 ω unit (Toggle d).
+Goal doors_o_caller2 unit ω (Toggle d).
 Proof. scope. Fail verit. (* TODO Chantal *) 
 rewrite H12 in o_caller0. 
 unfold is_true in o_caller0. 
