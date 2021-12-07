@@ -137,7 +137,7 @@ Section Lists.
   Theorem in_split : forall x (l:list A), Lists.Inb x l = true -> exists l1 l2, l = l1++x::l2.
   Proof.
   induction l. 
-  - scope1. Fail verit. (*DONE Chantal : existentials ? Yes, this goal cannot be solved by SMTCoq*) intros H ; rewrite H6 in H. inversion H.
+  - scope1. Fail verit. (*WONTFIX Chantal : existentials ? Yes, this goal cannot be solved by SMTCoq*) intros H ; rewrite H6 in H. inversion H.
   - scope1. admit. (* Existentials so not handled by verit *)
 Admitted.
 
@@ -216,10 +216,8 @@ Admitted.
   Lemma app_inj_tail :
     forall (x y:list A) (a b:A), x ++ [a] = y ++ [b] -> x = y /\ a = b.
   Proof.
-    induction x as [| x l IHl].
-     - scope1. clear H17. verit.  (* TODO Chantal : erreur sans le clear *)
-     - scope1. (* verit. compdec en Caml *)
-  Abort.
+    induction x as [| x l IHl]; snipe1.
+  Qed.
 
   (** Compatibility with other operations *)
 
@@ -229,16 +227,12 @@ Admitted.
 
   Lemma in_app_or : forall (l m:list A) (a:A), Inb a (l ++ m) -> or (Inb a l) (Inb a m).
   Proof.
-    scope1.
-    intros l m b. induction l.
-    - verit. 
-    - (*  verit. *) (* TODO Chantal *) 
-
-Admitted.
+    intros l m b. induction l; snipe1.
+  Qed.
 
   Lemma in_or_app : forall (l m:list A) (a:A), or (Inb a l) (Inb a m) -> Inb a (l ++ m).
   Proof.
-    intros l ; induction l. scope1.
+    intros l ; induction l; scope1.
     - Fail verit. admit. (* TODO Chantal *)
     - Fail verit. admit. (* TODO Chantal *) Admitted.
 
@@ -564,8 +558,8 @@ Admitted.
     - snipe1.
     - scope2. specialize (H21 l). destruct H21 as [H21' | H21''].
         + rewrite H21'. verit.
-        + rewrite H21''. (* verit. *) (* TODO Chantal *)
-  Admitted.
+        + rewrite H21''. verit.
+  Qed.
 
   Lemma exists_last :
     forall l, l <> [] -> { l' : (list A) & { a : A | l = l' ++ [a]}}.
