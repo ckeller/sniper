@@ -137,7 +137,7 @@ Section Lists.
   Theorem in_split : forall x (l:list A), Lists.Inb x l = true -> exists l1 l2, l = l1++x::l2.
   Proof.
   induction l. 
-  - scope1. Fail verit. (*WONTFIX Chantal : existentials ? Yes, this goal cannot be solved by SMTCoq*) intros H ; rewrite H6 in H. inversion H.
+  - scope1. intros H. exfalso. verit. 
   - scope1. admit. (* Existentials so not handled by verit *)
 Admitted.
 
