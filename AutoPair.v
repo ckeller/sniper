@@ -26,15 +26,15 @@ Section lemmas.
 Lemma surjective_pairing :
   forall (p:A × B), p = (fst A B p, snd A B p).
 Proof.
-  scope2. (*  verit. *) (* TODO Chantal *)
-Admitted.
+  snipe1. Undo. snipe2. 
+Qed.
 
 Lemma injective_projections :
   forall (p1 p2:A * B),
     fst A B p1 = fst A B p2 -> snd A B p1 = snd A B p2 -> p1 = p2.
 Proof.
-  scope1. (* verit. *)
-Abort.
+  snipe1. Undo. snipe2.
+Qed.
 
 Lemma pair_equal_spec :
   forall (a1 a2 : A) (b1 b2 : B),
@@ -42,3 +42,5 @@ Lemma pair_equal_spec :
 Proof.
   snipe1. Undo. snipe2.
 Qed.
+
+End lemmas.
