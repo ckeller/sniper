@@ -137,9 +137,11 @@ Section Lists.
   Theorem in_split : forall x (l:list A), Lists.Inb x l = true -> exists l1 l2, l = l1++x::l2.
   Proof.
   induction l. 
-  - scope1. intros H. exfalso. verit. 
-  - scope1. admit. (* Existentials so not handled by verit *)
-Admitted.
+  intro H. exfalso. snipe.
+  - simpl. rewrite orb_true_iff. intros [H|H].
+    + exists nil, l. clear IHl. snipe.
+    + destruct (IHl H) as [l1 [l2 H2]]. exists (a0::l1), l2. clear IHl. snipe.
+  Qed.
 
   (** Inversion *)
   Lemma in_inv : forall (a b:A) (l:list A), Lists.Inb b (a :: l) -> a = b \/ Lists.Inb b l.
