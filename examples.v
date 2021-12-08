@@ -23,7 +23,7 @@ Local Open Scope Z_scope.
 
 (* A simple example *)
 Goal forall (l : list Z) (x : Z), hd_error l = Some x -> (l <> []).
-Proof. snipe1. Qed.
+Proof. snipe. Qed.
 
 
 (* The same, on any type who enjoys a decidable equality *)
@@ -33,9 +33,41 @@ Section Generic.
   Variable HA : CompDec A.
 
   Goal forall (l : list A) (x : A),  hd_error l = Some x -> (l <> []).
-  Proof. snipe1. Qed.
+  Proof. snipe. Qed.
 
 End Generic.
+
+Section destruct_auto.
+
+  Variable A : Type.
+  Variable HA : CompDec A.
+
+
+(* This theorem needs a case analysis on x and y *)
+ Theorem app_eq_unit (x y:list A) (a:A) :
+      x ++ y = [a] -> x = [] /\ y = [a] \/ x = [a] /\ y = [].
+  Proof.
+    destruct x as [|a' l]; [ destruct y as [|a' l] | destruct y as [| a0 l0] ];
+      simpl.
+    intros H; discriminate H.
+    left; split; auto.
+    intro H; right; split; auto.
+    generalize H.
+    generalize (app_nil_r l); intros E.
+    rewrite -> E; auto.
+    intros H.
+    injection H as [= H H0].
+    assert ([] = l ++ a0 :: l0) as H1 by auto.
+    apply app_cons_not_nil in H1 as [].
+  Qed.
+
+Theorem app_eq_unit_auto :
+    forall (x y: list A) (a:A),
+      x ++ y = a :: nil -> x = [] /\ y = [a] \/ x = [a] /\ y = [].
+  Proof. snipe. Qed.
+
+
+End destruct_auto.
 
 
 (* An example with polymorphism *)
@@ -57,15 +89,15 @@ Qed.
 Lemma rev_elements_app :
  forall A (H:CompDec A) s acc, tree.rev_elements_aux A acc s = ((tree.rev_elements A s) ++ acc)%list.
 Proof. intros A H s ; induction s.
-- snipe1 app_nil_r.
-- snipe1 (app_ass, app_nil_r).
+- snipe app_nil_r.
+- snipe (app_ass, app_nil_r).
 Qed.
 
 
 
 Lemma rev_elements_node c (H: CompDec c) l x r :
  rev_elements c (Node l x r) = (rev_elements c r ++ x :: rev_elements c l)%list.
-Proof. snipe1 (rev_elements_app, app_nil_r). Qed.
+Proof. snipe (rev_elements_app, app_nil_r). Qed.
 
 
 Lemma length_app_auto : forall B (HB: CompDec B), forall (l1 l2 l3 : list B),
@@ -93,7 +125,7 @@ Qed.
 (* The proof of this lemma, except induction, can be automatized *)
 Lemma search_app_snipe : forall {A: Type} {H : CompDec A} (x: A) (l1 l2: list A),
     search x (l1 ++ l2) = ((search x l1) || (search x l2))%bool.
-Proof. intros A H x l1 l2. induction l1 as [ | x0 l0 IH]; simpl; snipe1. Qed.
+Proof. intros A H x l1 l2. induction l1 as [ | x0 l0 IH]; simpl; snipe. Qed.
 
 
 (* Manually using this lemma *)
@@ -111,22 +143,22 @@ Qed.
 (* It can be fully automatized *)
 Lemma snipe_search_lemma : forall (A : Type) (H : CompDec A) (x: A) (l1 l2 l3: list A),
 search x (l1 ++ l2 ++ l3) = search x (l3 ++ l2 ++ l1).
-Proof. intros A H. snipe1 @search_app. Qed.
+Proof. intros A H. snipe @search_app. Qed.
 
 
 (* Another example with search *)
 Lemma in_inv : forall (A: Type) (HA : CompDec A) (a b:A) (l:list A),
     search b (a :: l) -> eqb_of_compdec HA a b \/ search b l.
-Proof. intros A HA. snipe1. Qed.
+Proof. intros A HA. snipe. Qed.
 
 
 (* Another example with an induction *)
 Lemma app_nil_r : forall (A: Type) (H: CompDec A) (l:list A), (l ++ [])%list = l.
-Proof. intros A H; induction l; snipe1. Qed.
+Proof. intros A H; induction l; snipe. Qed.
 
 
 (** Examples on trees *)
 
 Lemma empty_tree_Z2 : forall (t : @tree Z) a t' b,
 is_empty t = true -> t <> Node a t' b.
-Proof. intros t a t' b; snipe1. Qed.
+Proof. intros t a t' b; snipe. Qed.
