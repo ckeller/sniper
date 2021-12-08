@@ -371,6 +371,14 @@ Fixpoint nth_Z (n:Z) (l:list A) (default:A) {struct l} : A :=
       | _, _ => default
     end.
 
+(* To be usable, nth_Z should be stated as: *)
+(* Fixpoint nth_Z (n:Z) (l:list A) (default:A) {struct l} : A := *)
+(*   match l with *)
+(*   | [] => default *)
+(*   | x :: l' => if n =? 0 then x else nth_Z (n-1) l' default *)
+(*   end. *)
+(* TODO: if ... then ... else not supported by SMTCoq *)
+
 Require Import Coq.micromega.Lia.
 
   Axiom false_ineq : ((0 < 0) -> False). (* Supposed to be handled by veriT *)
@@ -379,9 +387,9 @@ Require Import Coq.micromega.Lia.
     forall (n:Z) (l:list A) (d:A), (n < lengthZ l)%Z -> In (nth_Z n l d) l.
   Proof.
   induction n ; scope.
-  - intros l ; specialize (H46 l).
-    destruct H46 as [H46' | H46'']. rewrite <- H46' in H7.
-    rewrite H7. intros d H. apply false_ineq in H. Fail verit. destruct H.
+  (* - intros l ; specialize (H46 l). *)
+  (*   destruct H46 as [H46' | H46'']. rewrite <- H46' in H7. *)
+  (*   rewrite H7. intros d H. apply false_ineq in H. Fail verit. destruct H. *)
     
     Admitted.
 
