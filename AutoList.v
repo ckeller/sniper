@@ -234,7 +234,7 @@ Section Lists.
 
   Lemma in_or_app : forall (l m:list A) (a:A), or (Inb a l) (Inb a m) -> Inb a (l ++ m).
   Proof.
-    intros l ; induction l; scope1.
+    intros l ; induction l; scope.
     - Fail verit. admit. (* TODO Chantal *)
     - Fail verit. admit. (* TODO Chantal *) Admitted.
 
@@ -347,7 +347,7 @@ Admitted.
   Lemma nth_default_eq :
     forall n l (d:A), nth_default d l n = nth n l d.
   Proof.
-    scope1.
+    scope.
   (* TODO : the pattern matching is not on a variable ! *)
   Admitted.
 
@@ -378,7 +378,7 @@ Require Import Coq.micromega.Lia.
   Lemma nth_In :
     forall (n:Z) (l:list A) (d:A), (n < lengthZ l)%Z -> In (nth_Z n l d) l.
   Proof.
-  induction n ; scope1.
+  induction n ; scope.
   - intros l ; specialize (H46 l).
     destruct H46 as [H46' | H46'']. rewrite <- H46' in H7.
     rewrite H7. intros d H. apply false_ineq in H. Fail verit. destruct H.
@@ -392,7 +392,7 @@ Require Import Coq.micromega.Lia.
 
   Lemma nth_overflow : forall (l : list A) n d, lengthZ l <= n -> nth_Z n l d = d.
   Proof.
-  induction l ; scope1. (* verit. TODO Chantal *)
+  induction l ; scope. (* verit. TODO Chantal *)
     (*    induction l; destruct n; simpl; intros; auto.
     - inversion H.
     - apply IHl; auto with arith.*)
@@ -401,7 +401,7 @@ Require Import Coq.micromega.Lia.
   Lemma nth_indep :
     forall l n d d', n < lengthZ l -> nth_Z n l d = nth_Z n l d'.
   Proof.
-    induction l; scope1.
+    induction l; scope.
     - (* verit. TODO Chantal *) admit.
     -  (* verit. TODO Chantal *) admit.
    (* induction l.
@@ -412,13 +412,13 @@ Require Import Coq.micromega.Lia.
   Lemma app_nth1 :
     forall l l' d n, n < lengthZ l -> nth_Z n (l++l') d = nth_Z n l d.
   Proof.
-    induction l; scope1. (* verit. TODO Chantal *)
+    induction l; scope. (* verit. TODO Chantal *)
   Admitted.
 
   Lemma app_nth2 :
     forall l l' d n, n >= lengthZ l -> nth_Z n (l++l') d = nth_Z (n-lengthZ l) l' d.
   Proof.
-    induction l; scope1.  (* verit. TODO Chantal *)
+    induction l; scope.  (* verit. TODO Chantal *)
     (* induction l; intros l' d [|n]; auto.
     - inversion 1.
     - intros; simpl; rewrite IHl; auto with arith. *)
@@ -434,7 +434,7 @@ Local Open Scope nat_scope.
 
   Lemma nth_error_In l n x : nth_error l n = Some x -> In x l.
   Proof.
-    revert n. induction l as [|b l IH]; scope1. 
+    revert n. induction l as [|b l IH]; scope. 
 (* Fail verit. TODO. *)
   Admitted.
 (*
@@ -526,7 +526,7 @@ Local Open Scope nat_scope.
 
   Theorem remove_In : forall (l : list A) (x : A), ~ In x (remove x l).
   Proof.
-    induction l ; scope1.
+    induction l ; scope.
     - Fail verit. (* TODO *)
 Admitted.
 
@@ -574,7 +574,7 @@ Admitted.
   Proof.
     induction l. 
     - snipe.
-    - scope1. intros l' H. assert (l++l' <> []). verit.
+    - scope. intros l' H. assert (l++l' <> []). verit.
     specialize (H17 l). destruct H17 as [H17 |H17']. 
           + destruct (l ++ l'). destruct H14. verit.
  admit. (* TODO Louise : see manual proof *)
